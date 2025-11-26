@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>HCP Gateway (Developed by MS3 Technology BD)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <nav class="tabs" role="tablist" aria-label="Main">
+          <button
+            id="tab-home"
+            role="tab"
+            aria-selected="true"
+            class="tab active"
+          >
+            Home
+          </button>
+          <button
+            id="tab-settings"
+            role="tab"
+            aria-selected="false"
+            class="tab"
+          >
+            Integration Settings
+          </button>
+          <button
+            id="tab-forwarder"
+            role="tab"
+            aria-selected="false"
+            class="tab"
+          >
+            Attendance Forwarder
+          </button>
+          <button
+            id="tab-uploader"
+            role="tab"
+            aria-selected="false"
+            class="tab"
+          >
+            Attendance CSV Uploader
+          </button>
+        </nav>
+      </header>
+
+      <main>
+        <section id="homePanel" class="tab-panel" hidden>
+          <div class="container">
+            <h1>Home</h1>
+            <p class="note">Quick actions and status will appear here.</p>
+            <div class="actions">
+              <div>
+                <button id="checkUpdates" class="small">
+                  Check for updates
+                </button>
+                <button id="openSettings" class="small secondary">
+                  Open Settings
+                </button>
+              </div>
+              <div id="homeMessage" aria-live="polite"></div>
+            </div>
+            <div class="status-grid">
+              <div class="status-card">
+                <h2>Integration Status</h2>
+                <ul class="status-list">
+                  <li>
+                    <span class="status-label">Active Integration</span>
+                    <span class="status-value" id="homeActiveIntegrationValue"
+                      >—</span
+                    >
+                  </li>
+                  <li>
+                    <span class="status-label">Cron Expression</span>
+                    <span class="status-value" id="homeCronValue">—</span>
+                  </li>
+                  <li>
+                    <span class="status-label">Run Times</span>
+                    <span class="status-value" id="homeRunTimesValue">—</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <form id="configForm" aria-label="Configuration form" hidden>
+          <section id="settingsPanel" class="tab-panel" hidden>
+            <div class="container">
+              <div class="panel-header">
+                <h1>Integration Settings</h1>
+                <div class="actions panel-actions">
+                  <button type="button" class="small" data-action="save">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    class="small secondary"
+                    data-action="reset"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="schoolId">School ID</label>
+                  <input
+                    id="schoolId"
+                    name="schoolId"
+                    type="text"
+                    placeholder="0"
+                  />
+                </div>
+                <div class="form-row">
+                  <label for="schoolDomain">School Domain</label>
+                  <input
+                    id="schoolDomain"
+                    name="schoolDomain"
+                    type="text"
+                    placeholder="example.edu.bd"
+                  />
+                </div>
+              </div>
+
+              <div class="form-grid compact">
+                <div class="form-row full">
+                  <label for="scheduleCron">Cron Expression</label>
+                  <input
+                    id="scheduleCron"
+                    name="scheduleCron"
+                    type="text"
+                    placeholder="0 9 * * *"
+                  />
+                  <span class="note">
+                    Optional. When provided, overrides the daily run times below
+                    for whichever integration is active.
+                  </span>
+                </div>
+
+                <div class="form-row">
+                  <label for="dailyTime1">Run Time 1</label>
+                  <input id="dailyTime1" name="dailyTime1" type="time" />
+                </div>
+
+                <div class="form-row">
+                  <label for="dailyTime2">Run Time 2</label>
+                  <input id="dailyTime2" name="dailyTime2" type="time" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="forwarderPanel" class="tab-panel" hidden>
+            <div class="container">
+              <div class="panel-header">
+                <h1>Forwarder Settings</h1>
+                <div class="actions panel-actions">
+                  <button type="button" class="small" id="enableForwarder">
+                    Enable
+                  </button>
+                  <button type="button" class="small" data-action="save">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    class="small secondary"
+                    data-action="reset"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-row full">
+                  <label for="hikcentralBaseUri">HikCentral Base URI</label>
+                  <input
+                    id="hikcentralBaseUri"
+                    name="hikcentralBaseUri"
+                    type="text"
+                    placeholder="https://hik.example/api"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <label for="hikcentralUserId">HikCentral User ID</label>
+                  <input
+                    id="hikcentralUserId"
+                    name="hikcentralUserId"
+                    type="text"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <label for="hikcentralAppKey"
+                    >HikCentral App Key (Integration Partner Key)</label
+                  >
+                  <input
+                    id="hikcentralAppKey"
+                    name="hikcentralAppKey"
+                    type="text"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <label for="hikcentralAppSecret"
+                    >HikCentral App Secret (Integration Partner Secret)</label
+                  >
+                  <input
+                    id="hikcentralAppSecret"
+                    name="hikcentralAppSecret"
+                    type="password"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="uploaderPanel" class="tab-panel" hidden>
+            <div class="container">
+              <div class="panel-header">
+                <h1>Uploader Settings</h1>
+                <div class="actions panel-actions">
+                  <button type="button" class="small" id="enableCsv">
+                    Enable
+                  </button>
+                  <button type="button" class="small" data-action="save">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    class="small secondary"
+                    data-action="reset"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-row full picker-row">
+                  <label for="csvDirectory">CSV Directory</label>
+                  <div class="picker">
+                    <input
+                      id="csvDirectory"
+                      name="csvDirectory"
+                      type="text"
+                      placeholder="C:/Users/HP/Downloads/AcsRecords"
+                    />
+                    <button
+                      type="button"
+                      class="small secondary"
+                      id="csvDirectoryBrowse"
+                    >
+                      Browse…
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label for="csvMaxRetries">Max Retries</label>
+                  <input
+                    id="csvMaxRetries"
+                    name="csvMaxRetries"
+                    type="number"
+                    min="1"
+                    step="1"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <label for="csvRetryDelay">Retry Delay (seconds)</label>
+                  <input
+                    id="csvRetryDelay"
+                    name="csvRetryDelay"
+                    type="number"
+                    min="1"
+                    step="1"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <label for="csvTimeout">Request Timeout (ms)</label>
+                  <input
+                    id="csvTimeout"
+                    name="csvTimeout"
+                    type="number"
+                    min="0"
+                    step="1000"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="message-row" id="messageRow">
+            <div id="message" aria-live="polite"></div>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

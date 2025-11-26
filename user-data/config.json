@@ -1,0 +1,9 @@
+{
+  "INTEGRATION_ENDPOINT": "https://cloud.barnomala.com/api/attendance/receive",
+  "HIKCENTRAL_BASE_URI": "https://127.0.0.1:443",
+  "HIKCENTRAL_APP_KEY": "",
+  "HIKCENTRAL_APP_SECRET": "",
+  "HIKCENTRAL_USER_ID": "",
+  "SCHOOL_ID": "",
+  "SCHOOL_DOMAIN": ""
+}

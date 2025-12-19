@@ -1,7 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, Tray, Menu } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { exec } = require("child_process");
 const axios = require("axios");
 const { startServer } = require("./backend/server");
 const { loadConfig, saveConfig } = require("./backend/configManager");
@@ -23,18 +22,6 @@ ipcMain.handle("config:save", (_, data) => {
   saveConfig(nextConfig);
   reloadIntegration();
   return nextConfig;
-});
-ipcMain.handle("api:fetch", async (_, url, options = {}) => {
-  try {
-    const response = await axios({ url, ...options });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    const response = error.response || {
-      status: 500,
-      data: { message: error.message },
-    };
-    return { ok: false, status: response.status, data: response.data };
-  }
 });
 ipcMain.handle("dialog:select-directory", async (_event, defaultPath = "") => {
   const result = await dialog.showOpenDialog({

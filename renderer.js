@@ -1,7 +1,6 @@
 // renderer.js — handles UI for attendance forwarder and CSV uploader settings
 
 (function () {
-  const MAIN_TAB_KEY = "lastTab";
 
   let configState = null;
 
@@ -9,17 +8,6 @@
     return document.getElementById(id);
   }
 
-  function toPositiveInteger(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isNaN(parsed) || parsed <= 0) return fallback;
-    return parsed;
-  }
-
-  function toNonNegativeInteger(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isNaN(parsed) || parsed < 0) return fallback;
-    return parsed;
-  }
 
   function showMessage(text, isError = false) {
     const msg = $id("message");
@@ -160,7 +148,6 @@
     delete next.CSV_UPLOAD_RUN_TIMES;
     delete next.CSV_UPLOAD_CRON;
     delete next.INTEGRATION_ENDPOINT;
-    delete next.INTEGRATION_ENDPOINT;
 
     return next;
   }
@@ -174,9 +161,6 @@
     return { ok: true };
   }
 
-  function hasSchedule(times, cron) {
-    return (Array.isArray(times) && times.length > 0) || Boolean(cron);
-  }
 
   function validateConfig(config) {
     const runTimes = Array.isArray(config.DAILY_RUN_TIMES)

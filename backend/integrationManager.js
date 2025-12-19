@@ -1,5 +1,4 @@
 const winston = require("winston");
-const { loadConfig } = require("./configManager");
 const { startSchedule, stopSchedule } = require("./scheduler");
 const { runCsvSendJob } = require("./csvSendJob");
 

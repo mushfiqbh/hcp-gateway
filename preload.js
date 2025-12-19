@@ -5,9 +5,6 @@ contextBridge.exposeInMainWorld("configAPI", {
   save: (data) => ipcRenderer.invoke("config:save", data)
 });
 
-contextBridge.exposeInMainWorld("httpAPI", {
-  fetch: (url, options) => ipcRenderer.invoke("api:fetch", url, options),
-});
 
 contextBridge.exposeInMainWorld('updateAPI', {
   checkForUpdates: () => ipcRenderer.invoke('update:check'),

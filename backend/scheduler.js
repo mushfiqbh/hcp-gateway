@@ -17,7 +17,6 @@ const logger = winston.createLogger({
 });
 
 let scheduledTasks = [];
-let scheduleSnapshot = null;
 let isJobRunning = false;
 
 function normalizeRunTimes(value) {
@@ -67,7 +66,6 @@ function formatNextRun(dateLike) {
 
 function stopSchedule() {
   if (!scheduledTasks.length) {
-    scheduleSnapshot = null;
     isJobRunning = false;
     return;
   }
@@ -82,7 +80,6 @@ function stopSchedule() {
     }
   });
   scheduledTasks = [];
-  scheduleSnapshot = null;
   isJobRunning = false;
   logger.info("Integration scheduler stopped");
 }
@@ -202,7 +199,7 @@ function startSchedule(jobRunner, options = {}) {
       return aTime - bTime;
     });
 
-  scheduleSnapshot = {
+  const scheduleSnapshot = {
     jobLabel,
     cronExpression: cronExpression || "",
     runTimes,
@@ -219,13 +216,8 @@ function startSchedule(jobRunner, options = {}) {
   return { tasks: scheduledTasks, snapshot: { ...scheduleSnapshot } };
 }
 
-function getScheduleSnapshot() {
-  if (!scheduleSnapshot) return null;
-  return { ...scheduleSnapshot };
-}
 
 module.exports = {
   startSchedule,
   stopSchedule,
-  getScheduleSnapshot,
 };

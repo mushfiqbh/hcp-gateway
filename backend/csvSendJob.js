@@ -23,13 +23,6 @@ const logger = winston.createLogger({
 
 let isJobRunning = false;
 
-function toPositiveInteger(value, fallback) {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    return fallback;
-  }
-  return parsed;
-}
 
 function resolveOptions(overrides = {}) {
   const config = loadConfig();

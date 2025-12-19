@@ -1,5 +1,4 @@
 const express = require("express");
-const personController = require("./controllers/personController");
 
 let serverInstance;
 let isServerStarted = false;
@@ -10,9 +9,6 @@ function startServer() {
 
   const app = express();
   app.use(express.json());
-
-  // Routes
-  app.get("/test", personController.getPersonList);
 
   serverInstance = app.listen(0, () => {
     const port = serverInstance.address().port;

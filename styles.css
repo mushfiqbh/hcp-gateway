@@ -76,3 +76,11 @@ button[disabled]{opacity:0.6;cursor:not-allowed}
 @media (max-width:700px){
   .form-grid{grid-template-columns:1fr}
 }
+.flex-row {
+  display: flex;
+  gap: 20px;
+  grid-column: 1 / -1;
+}
+.flex-row > .form-row {
+  flex: 1;
+}

@@ -22,3 +22,6 @@ contextBridge.exposeInMainWorld('updateAPI', {
    selectDirectory: (defaultPath = "") =>
      ipcRenderer.invoke("dialog:select-directory", defaultPath),
  });
+ contextBridge.exposeInMainWorld("statuscheckAPI", {
+   check: () => ipcRenderer.invoke("status:check"),
+ });

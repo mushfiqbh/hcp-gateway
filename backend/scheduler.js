@@ -37,9 +37,13 @@ function normalizeRunTimes(value) {
 
 function resolveScheduleOptions(overrides = {}) {
   const config = loadConfig();
+  const scheduleMode = overrides.scheduleMode ?? config.SCHEDULE_MODE ?? "daily";
   const cronExpression = overrides.cronExpression ?? config.CRON_SCHEDULE;
-  const runTimes = normalizeRunTimes(overrides.runTimes ?? config.DAILY_RUN_TIMES);
+  const runTimes = normalizeRunTimes(
+    overrides.runTimes ?? config.DAILY_RUN_TIMES
+  );
   return {
+    scheduleMode,
     cronExpression,
     runTimes,
   };
@@ -139,26 +143,41 @@ function startSchedule(jobRunner, options = {}) {
       });
   };
 
-  if (runTimes.length > 0) {
+  if (scheduleOptions.scheduleMode === "daily" && runTimes.length > 0) {
     runTimes.forEach((time) => {
       const [hour, minute] = time.split(":");
       const expression = `${minute} ${hour} * * *`;
-      const task = createCronTask(expression, `${jobLabel} (daily@${time})`, execute);
+      const task = createCronTask(
+        expression,
+        `${jobLabel} (daily@${time})`,
+        execute
+      );
       if (task) tasks.push(task);
     });
-  } else if (cronExpression) {
-    if (!cron.validate(cronExpression)) {
-      logger.error("Integration scheduler not started: invalid cron expression", {
-        jobLabel,
-        cronExpression,
-      });
+  } else if (
+    scheduleOptions.scheduleMode === "interval" ||
+    (!runTimes.length && cronExpression)
+  ) {
+    const expression =
+      scheduleOptions.scheduleMode === "interval"
+        ? "*/5 * * * *"
+        : cronExpression;
+
+    if (!cron.validate(expression)) {
+      logger.error(
+        "Integration scheduler not started: invalid cron expression",
+        {
+          jobLabel,
+          cronExpression: expression,
+        }
+      );
       return { tasks: [], snapshot: null };
     }
-    const task = createCronTask(cronExpression, jobLabel, execute);
+    const task = createCronTask(expression, jobLabel, execute);
     if (task) tasks.push(task);
   } else {
     logger.warn(
-      "Integration scheduler not started: configure run times or a cron expression",
+      "Integration scheduler not started: configure run times or an interval",
       { jobLabel }
     );
     return { tasks: [], snapshot: null };

@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Tray, Menu } = require("electron");
 const path = require("path");
+const fs = require("fs");
+const { exec } = require("child_process");
 const axios = require("axios");
 const { startServer } = require("./backend/server");
 const { loadConfig, saveConfig } = require("./backend/configManager");
@@ -40,6 +42,46 @@ ipcMain.handle("dialog:select-directory", async (_event, defaultPath = "") => {
     defaultPath,
   });
   return result;
+});
+
+ipcMain.handle("status:check", async () => {
+  const config = loadConfig();
+  const results = {
+    endpoint: { ok: false, message: "Checking..." },
+    csv: { ok: false, message: "Checking..." },
+  };
+
+  // 1. Check Endpoint
+  try {
+    const response = await axios.get("https://cloud.barnomala.com/api/attendance/receive", { timeout: 5000 }).catch(e => e.response || { status: 500 });
+    // Even a 405/404 from the server means the endpoint is reachable
+    if (response.status < 500) {
+      results.endpoint = { ok: true, message: "Connected" };
+    } else {
+      results.endpoint = { ok: false, message: `Error ${response.status}` };
+    }
+  } catch (error) {
+    results.endpoint = { ok: false, message: "Unreachable" };
+  }
+
+  // 2. Check CSV Directory and today's file
+  try {
+    const { findTodayCsvFile } = require("./backend/uploader");
+    if (config.CSV_UPLOAD_DIR && fs.existsSync(config.CSV_UPLOAD_DIR)) {
+      const todayFile = await findTodayCsvFile(config.CSV_UPLOAD_DIR);
+      if (todayFile) {
+        results.csv = { ok: true, message: "Directory OK & Today's File Found" };
+      } else {
+        results.csv = { ok: true, message: "Directory OK (No file today yet)" };
+      }
+    } else {
+      results.csv = { ok: false, message: "Invalid Directory" };
+    }
+  } catch (error) {
+    results.csv = { ok: false, message: "Check failed" };
+  }
+
+  return results;
 });
 
 function createWindow() {

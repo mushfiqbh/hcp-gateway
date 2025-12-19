@@ -34,11 +34,7 @@
     }, 4000);
   }
 
-  function humanizeIntegration(value) {
-    if (value === "csvUploader") return "Attendance CSV Uploader";
-    if (value === "attendanceForwarder" || !value) return "Attendance Forwarder";
-    return value;
-  }
+
 
   function formatRunTimes(times) {
     if (!Array.isArray(times) || times.length === 0) return "Not set";
@@ -48,21 +44,56 @@
   function updateHomeStatus() {
     if (!configState) return;
 
-    const integrationEl = $id("homeActiveIntegrationValue");
-    if (integrationEl)
-      integrationEl.textContent = humanizeIntegration(
-        configState.ACTIVE_INTEGRATION
-      );
-
     const cronEl = $id("homeCronValue");
-    if (cronEl)
-      cronEl.textContent = configState.CRON_SCHEDULE
-        ? configState.CRON_SCHEDULE
-        : "Not set";
+    if (cronEl) {
+      if (configState.SCHEDULE_MODE === "interval") {
+        cronEl.textContent = "Every 5 Minutes";
+      } else {
+        cronEl.textContent = configState.CRON_SCHEDULE || "Not set";
+      }
+    }
 
     const runTimesEl = $id("homeRunTimesValue");
-    if (runTimesEl)
-      runTimesEl.textContent = formatRunTimes(configState.DAILY_RUN_TIMES);
+    if (runTimesEl) {
+      if (configState.SCHEDULE_MODE === "interval") {
+        runTimesEl.textContent = "Disabled (using interval)";
+      } else {
+        runTimesEl.textContent = formatRunTimes(configState.DAILY_RUN_TIMES);
+      }
+    }
+
+    const lastUploadEl = $id("statusLastUpload");
+    if (lastUploadEl) {
+      if (configState.LAST_UPLOAD_TIME) {
+        try {
+          lastUploadEl.textContent = new Date(
+            configState.LAST_UPLOAD_TIME
+          ).toLocaleString();
+        } catch (e) {
+          lastUploadEl.textContent = configState.LAST_UPLOAD_TIME;
+        }
+      } else {
+        lastUploadEl.textContent = "Never";
+      }
+    }
+  }
+
+  async function refreshSystemStatus() {
+    if (!window.statuscheckAPI) return;
+    try {
+      const results = await window.statuscheckAPI.check();
+      const setStatus = (id, info) => {
+        const el = $id(id);
+        if (!el) return;
+        el.textContent = info.message;
+        el.style.color = info.ok ? "green" : "red";
+      };
+
+      setStatus("statusEndpoint", results.endpoint);
+      setStatus("statusCsv", results.csv);
+    } catch (error) {
+      console.error("Status check failed", error);
+    }
   }
 
   function applyConfigToUI() {
@@ -71,48 +102,38 @@
     const times = Array.isArray(configState.DAILY_RUN_TIMES)
       ? configState.DAILY_RUN_TIMES
       : [];
-    $id("dailyTime1").value = times[0] || "";
-    $id("dailyTime2").value = times[1] || "";
-    $id("scheduleCron").value = configState.CRON_SCHEDULE || "";
-    $id("hikcentralBaseUri").value = configState.HIKCENTRAL_BASE_URI || "";
-    $id("hikcentralAppKey").value = configState.HIKCENTRAL_APP_KEY || "";
-    $id("hikcentralAppSecret").value = configState.HIKCENTRAL_APP_SECRET || "";
-    $id("hikcentralUserId").value = configState.HIKCENTRAL_USER_ID || "";
+    $DailyTime1 = $id("dailyTime1");
+    if ($DailyTime1) $DailyTime1.value = times[0] || "";
+    $DailyTime2 = $id("dailyTime2");
+    if ($DailyTime2) $DailyTime2.value = times[1] || "";
+    $ScheduleMode = $id("scheduleMode");
+    if ($ScheduleMode) $ScheduleMode.value = configState.SCHEDULE_MODE || "daily";
     $id("schoolId").value = configState.SCHOOL_ID || "";
     $id("schoolDomain").value = configState.SCHOOL_DOMAIN || "";
 
-    $id("csvDirectory").value = configState.CSV_UPLOAD_DIR || "";
-    $id("csvMaxRetries").value =
-      configState.CSV_UPLOAD_MAX_RETRIES ?? 3;
-    $id("csvRetryDelay").value =
-      configState.CSV_UPLOAD_RETRY_DELAY_SECONDS ?? 60;
-    $id("csvTimeout").value = configState.CSV_UPLOAD_TIMEOUT_MS ?? 120000;
+    $CSVDir = $id("csvDirectory");
+    if ($CSVDir) $CSVDir.value = configState.CSV_UPLOAD_DIR || "";
 
-    const activeIntegration =
-      configState.ACTIVE_INTEGRATION || "attendanceForwarder";
-    const enableForwarderBtn = $id("enableForwarder");
-    if (enableForwarderBtn) {
-      const isActive = activeIntegration === "attendanceForwarder";
-      enableForwarderBtn.disabled = isActive;
-      enableForwarderBtn.textContent = isActive ? "Active" : "Enable";
-      enableForwarderBtn.setAttribute("aria-pressed", String(isActive));
-    }
 
-    const enableCsvBtn = $id("enableCsv");
-    if (enableCsvBtn) {
-      const isActive = activeIntegration === "csvUploader";
-      enableCsvBtn.disabled = isActive;
-      enableCsvBtn.textContent = isActive ? "Active" : "Enable";
-      enableCsvBtn.setAttribute("aria-pressed", String(isActive));
-    }
 
     updateHomeStatus();
+    
+    // Update time fields state if the helper exists
+    const scheduleModeSelect = $id("scheduleMode");
+    if (scheduleModeSelect) {
+      const mode = scheduleModeSelect.value;
+      const t1 = $id("dailyTime1");
+      const t2 = $id("dailyTime2");
+      if (t1) t1.disabled = mode === "interval";
+      if (t2) t2.disabled = mode === "interval";
+    }
   }
 
   async function loadConfig() {
     try {
       configState = await window.configAPI.get();
       applyConfigToUI();
+      refreshSystemStatus();
     } catch (error) {
       console.error("Failed to load configuration", error);
       showMessage("Failed to load settings", true);
@@ -121,32 +142,20 @@
 
   function gatherConfigFromForm() {
     const next = { ...(configState || {}) };
-    next.CRON_SCHEDULE = $id("scheduleCron").value.trim();
+    $ScheduleMode = $id("scheduleMode");
+    if ($ScheduleMode) next.SCHEDULE_MODE = $ScheduleMode.value;
     const runTimes = [
       ($id("dailyTime1").value || "").trim(),
       ($id("dailyTime2").value || "").trim(),
     ].filter(Boolean);
     next.DAILY_RUN_TIMES = Array.from(new Set(runTimes));
-    next.HIKCENTRAL_BASE_URI = $id("hikcentralBaseUri").value.trim();
-    next.HIKCENTRAL_APP_KEY = $id("hikcentralAppKey").value.trim();
-    next.HIKCENTRAL_APP_SECRET = $id("hikcentralAppSecret").value;
-    next.HIKCENTRAL_USER_ID = $id("hikcentralUserId").value.trim();
-    next.SCHOOL_ID = $id("schoolId").value.trim();
-    next.SCHOOL_DOMAIN = $id("schoolDomain").value.trim();
+    $SchoolId = $id("schoolId");
+    if ($SchoolId) next.SCHOOL_ID = $SchoolId.value.trim();
+    $SchoolDomain = $id("schoolDomain");
+    if ($SchoolDomain) next.SCHOOL_DOMAIN = $SchoolDomain.value.trim();
 
-    next.CSV_UPLOAD_DIR = $id("csvDirectory").value.trim();
-    next.CSV_UPLOAD_MAX_RETRIES = toPositiveInteger(
-      $id("csvMaxRetries").value,
-      configState?.CSV_UPLOAD_MAX_RETRIES ?? 3
-    );
-    next.CSV_UPLOAD_RETRY_DELAY_SECONDS = toPositiveInteger(
-      $id("csvRetryDelay").value,
-      configState?.CSV_UPLOAD_RETRY_DELAY_SECONDS ?? 60
-    );
-    next.CSV_UPLOAD_TIMEOUT_MS = toNonNegativeInteger(
-      $id("csvTimeout").value,
-      configState?.CSV_UPLOAD_TIMEOUT_MS ?? 120000
-    );
+    $CSVDir = $id("csvDirectory");
+    if ($CSVDir) next.CSV_UPLOAD_DIR = $CSVDir.value.trim();
 
     delete next.CSV_UPLOAD_RUN_TIMES;
     delete next.CSV_UPLOAD_CRON;
@@ -175,62 +184,26 @@
       : [];
     const cronExpression = config.CRON_SCHEDULE || "";
 
-    if (!hasSchedule(runTimes, cronExpression)) {
-      return {
-        ok: false,
-        message: "Provide a cron expression or at least one run time",
-      };
-    }
-
-    const validation = validateRunTimes(runTimes);
-    if (!validation.ok) {
-      return validation;
-    }
-
-    if (config.ACTIVE_INTEGRATION === "csvUploader") {
-      if (!config.CSV_UPLOAD_DIR) {
-        return { ok: false, message: "CSV directory is required" };
+    if (config.SCHEDULE_MODE === "daily") {
+      if (runTimes.length === 0) {
+        return {
+          ok: false,
+          message: "Provide at least one run time",
+        };
       }
-      return { ok: true };
+      const validation = validateRunTimes(runTimes);
+      if (!validation.ok) {
+        return validation;
+      }
+    }
+
+    if (!config.CSV_UPLOAD_DIR) {
+      return { ok: false, message: "CSV directory is required" };
     }
     return { ok: true };
   }
 
-  async function handleEnableIntegration(type) {
-    const allowed = ["attendanceForwarder", "csvUploader"];
-    if (!allowed.includes(type)) return;
 
-    if (!window.configAPI || typeof window.configAPI.save !== "function") {
-      showMessage("Configuration API not available", true);
-      return;
-    }
-
-    if (configState && configState.ACTIVE_INTEGRATION === type) {
-      showMessage(`${humanizeIntegration(type)} already active`);
-      return;
-    }
-
-    const buttonId = type === "attendanceForwarder" ? "enableForwarder" : "enableCsv";
-    const button = $id(buttonId);
-    if (button) button.disabled = true;
-
-    try {
-      const saved = await window.configAPI.save({ ACTIVE_INTEGRATION: type });
-      configState = saved;
-      applyConfigToUI();
-      showMessage(`${humanizeIntegration(type)} enabled`);
-    } catch (error) {
-      console.error("Failed to enable integration", error);
-      showMessage("Failed to enable integration", true);
-    } finally {
-      if (button) {
-        const isActive = configState?.ACTIVE_INTEGRATION === type;
-        button.disabled = isActive;
-        button.textContent = isActive ? "Active" : "Enable";
-        button.setAttribute("aria-pressed", String(isActive));
-      }
-    }
-  }
 
   function showTab(name) {
     const tabs = document.querySelectorAll(".tab");
@@ -240,7 +213,7 @@
       tab.setAttribute("aria-selected", String(isActive));
     });
 
-    const mainPanels = ["home", "settings", "forwarder", "uploader"]; 
+    const mainPanels = ["home", "settings"];
     mainPanels.forEach((panelName) => {
       const panel = $id(`${panelName}Panel`);
       if (!panel) return;
@@ -260,10 +233,6 @@
       if (name !== "home") messageRow.removeAttribute("hidden");
       else messageRow.setAttribute("hidden", "");
     }
-
-    try {
-      localStorage.setItem(MAIN_TAB_KEY, name);
-    } catch (e) {}
 
     loadConfig();
   }
@@ -305,15 +274,9 @@
   document.addEventListener("DOMContentLoaded", () => {
     const tabHome = $id("tab-home");
     const tabSettings = $id("tab-settings");
-    const tabForwarder = $id("tab-forwarder");
-    const tabUploader = $id("tab-uploader");
     if (tabHome) tabHome.addEventListener("click", () => showTab("home"));
     if (tabSettings)
       tabSettings.addEventListener("click", () => showTab("settings"));
-    if (tabForwarder)
-      tabForwarder.addEventListener("click", () => showTab("forwarder"));
-    if (tabUploader)
-      tabUploader.addEventListener("click", () => showTab("uploader"));
 
     const openSettings = $id("openSettings");
     if (openSettings)
@@ -322,17 +285,17 @@
         showTab("settings");
       });
 
-    const enableForwarderBtn = $id("enableForwarder");
-    if (enableForwarderBtn)
-      enableForwarderBtn.addEventListener("click", () =>
-        handleEnableIntegration("attendanceForwarder")
-      );
-
-    const enableCsvBtn = $id("enableCsv");
-    if (enableCsvBtn)
-      enableCsvBtn.addEventListener("click", () =>
-        handleEnableIntegration("csvUploader")
-      );
+    const scheduleModeSelect = $id("scheduleMode");
+    const updateTimeFieldsVisibility = () => {
+      const mode = scheduleModeSelect.value;
+      const t1 = $id("dailyTime1");
+      const t2 = $id("dailyTime2");
+      if (t1) t1.disabled = mode === "interval";
+      if (t2) t2.disabled = mode === "interval";
+    };
+    if (scheduleModeSelect) {
+      scheduleModeSelect.addEventListener("change", updateTimeFieldsVisibility);
+    }
 
     const checkBtn = $id("checkUpdates");
     const homeMsg = $id("homeMessage");
@@ -416,7 +379,11 @@
           const result = await window.dialogAPI.selectDirectory(
             $id("csvDirectory").value || ""
           );
-          if (result && result.canceled === false && Array.isArray(result.filePaths)) {
+          if (
+            result &&
+            result.canceled === false &&
+            Array.isArray(result.filePaths)
+          ) {
             const selected = result.filePaths[0];
             if (selected) {
               $id("csvDirectory").value = selected;
@@ -429,11 +396,8 @@
       });
     }
 
-    let initialMainTab = "home";
-    try {
-      initialMainTab = localStorage.getItem(MAIN_TAB_KEY) || "home";
-    } catch (error) {}
-    showTab(initialMainTab);
+    showTab("home");
+    setInterval(refreshSystemStatus, 30000); // refresh every 30s
 
     window.addEventListener("beforeunload", () => {
       if (typeof unsubscribeUpdates === "function") unsubscribeUpdates();

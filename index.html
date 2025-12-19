@@ -25,22 +25,6 @@
           >
             Integration Settings
           </button>
-          <button
-            id="tab-forwarder"
-            role="tab"
-            aria-selected="false"
-            class="tab"
-          >
-            Attendance Forwarder
-          </button>
-          <button
-            id="tab-uploader"
-            role="tab"
-            aria-selected="false"
-            class="tab"
-          >
-            Attendance CSV Uploader
-          </button>
         </nav>
       </header>
 
@@ -54,34 +38,29 @@
                 <button id="checkUpdates" class="small">
                   Check for updates
                 </button>
-                <button id="openSettings" class="small secondary">
-                  Open Settings
-                </button>
               </div>
               <div id="homeMessage" aria-live="polite"></div>
             </div>
             <div class="status-grid">
               <div class="status-card">
-                <h2>Integration Status</h2>
+                <h2>System Status</h2>
                 <ul class="status-list">
                   <li>
-                    <span class="status-label">Active Integration</span>
-                    <span class="status-value" id="homeActiveIntegrationValue"
-                      >—</span
-                    >
+                    <span class="status-label">Integration Endpoint</span>
+                    <span class="status-value" id="statusEndpoint">—</span>
                   </li>
                   <li>
-                    <span class="status-label">Cron Expression</span>
-                    <span class="status-value" id="homeCronValue">—</span>
+                    <span class="status-label">CSV Directory / File</span>
+                    <span class="status-value" id="statusCsv">—</span>
                   </li>
+
                   <li>
-                    <span class="status-label">Run Times</span>
-                    <span class="status-value" id="homeRunTimesValue">—</span>
+                    <span class="status-label">Last Successful Upload</span>
+                    <span class="status-value" id="statusLastUpload">—</span>
                   </li>
                 </ul>
               </div>
             </div>
-          </div>
         </section>
 
         <form id="configForm" aria-label="Configuration form" hidden>
@@ -104,140 +83,6 @@
               </div>
 
               <div class="form-grid">
-                <div class="form-row">
-                  <label for="schoolId">School ID</label>
-                  <input
-                    id="schoolId"
-                    name="schoolId"
-                    type="text"
-                    placeholder="0"
-                  />
-                </div>
-                <div class="form-row">
-                  <label for="schoolDomain">School Domain</label>
-                  <input
-                    id="schoolDomain"
-                    name="schoolDomain"
-                    type="text"
-                    placeholder="example.edu.bd"
-                  />
-                </div>
-              </div>
-
-              <div class="form-grid compact">
-                <div class="form-row full">
-                  <label for="scheduleCron">Cron Expression</label>
-                  <input
-                    id="scheduleCron"
-                    name="scheduleCron"
-                    type="text"
-                    placeholder="0 9 * * *"
-                  />
-                  <span class="note">
-                    Optional. When provided, overrides the daily run times below
-                    for whichever integration is active.
-                  </span>
-                </div>
-
-                <div class="form-row">
-                  <label for="dailyTime1">Run Time 1</label>
-                  <input id="dailyTime1" name="dailyTime1" type="time" />
-                </div>
-
-                <div class="form-row">
-                  <label for="dailyTime2">Run Time 2</label>
-                  <input id="dailyTime2" name="dailyTime2" type="time" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="forwarderPanel" class="tab-panel" hidden>
-            <div class="container">
-              <div class="panel-header">
-                <h1>Forwarder Settings</h1>
-                <div class="actions panel-actions">
-                  <button type="button" class="small" id="enableForwarder">
-                    Enable
-                  </button>
-                  <button type="button" class="small" data-action="save">
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    class="small secondary"
-                    data-action="reset"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-              <div class="form-grid">
-                <div class="form-row full">
-                  <label for="hikcentralBaseUri">HikCentral Base URI</label>
-                  <input
-                    id="hikcentralBaseUri"
-                    name="hikcentralBaseUri"
-                    type="text"
-                    placeholder="https://hik.example/api"
-                  />
-                </div>
-
-                <div class="form-row">
-                  <label for="hikcentralUserId">HikCentral User ID</label>
-                  <input
-                    id="hikcentralUserId"
-                    name="hikcentralUserId"
-                    type="text"
-                  />
-                </div>
-
-                <div class="form-row">
-                  <label for="hikcentralAppKey"
-                    >HikCentral App Key (Integration Partner Key)</label
-                  >
-                  <input
-                    id="hikcentralAppKey"
-                    name="hikcentralAppKey"
-                    type="text"
-                  />
-                </div>
-
-                <div class="form-row">
-                  <label for="hikcentralAppSecret"
-                    >HikCentral App Secret (Integration Partner Secret)</label
-                  >
-                  <input
-                    id="hikcentralAppSecret"
-                    name="hikcentralAppSecret"
-                    type="password"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="uploaderPanel" class="tab-panel" hidden>
-            <div class="container">
-              <div class="panel-header">
-                <h1>Uploader Settings</h1>
-                <div class="actions panel-actions">
-                  <button type="button" class="small" id="enableCsv">
-                    Enable
-                  </button>
-                  <button type="button" class="small" data-action="save">
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    class="small secondary"
-                    data-action="reset"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-              <div class="form-grid">
                 <div class="form-row full picker-row">
                   <label for="csvDirectory">CSV Directory</label>
                   <div class="picker">
@@ -258,38 +103,44 @@
                 </div>
 
                 <div class="form-row">
-                  <label for="csvMaxRetries">Max Retries</label>
+                  <label for="schoolId">School ID</label>
                   <input
-                    id="csvMaxRetries"
-                    name="csvMaxRetries"
-                    type="number"
-                    min="1"
-                    step="1"
+                    id="schoolId"
+                    name="schoolId"
+                    type="text"
+                    placeholder="0"
                   />
                 </div>
 
                 <div class="form-row">
-                  <label for="csvRetryDelay">Retry Delay (seconds)</label>
+                  <label for="schoolDomain">School Domain</label>
                   <input
-                    id="csvRetryDelay"
-                    name="csvRetryDelay"
-                    type="number"
-                    min="1"
-                    step="1"
+                    id="schoolDomain"
+                    name="schoolDomain"
+                    type="text"
+                    placeholder="example.edu.bd"
                   />
                 </div>
+                
+                <div class="flex-row">
+                  <div class="form-row">
+                    <label for="scheduleMode">Schedule Mode</label>
+                    <select id="scheduleMode" name="scheduleMode">
+                      <option value="daily">Use Run Times</option>
+                      <option value="interval">Run Every 5 Minutes</option>
+                    </select>
+                  </div>
 
-                <div class="form-row">
-                  <label for="csvTimeout">Request Timeout (ms)</label>
-                  <input
-                    id="csvTimeout"
-                    name="csvTimeout"
-                    type="number"
-                    min="0"
-                    step="1000"
-                  />
+                  <div class="form-row">
+                    <label for="dailyTime1">Run Time 1</label>
+                    <input id="dailyTime1" name="dailyTime1" type="time" />
+                  </div>
+
+                  <div class="form-row">
+                    <label for="dailyTime2">Run Time 2</label>
+                    <input id="dailyTime2" name="dailyTime2" type="time" />
+                  </div>
                 </div>
-              </div>
             </div>
           </section>
 

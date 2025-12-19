@@ -1,11 +1,11 @@
 const winston = require("winston");
-const { loadConfig, INTEGRATION_ENDPOINT } = require("../configManager");
+const { loadConfig, INTEGRATION_ENDPOINT } = require("./configManager");
 const {
   sendDailyCsvData,
   CsvFileNotFoundError,
   CsvEndpointMissingError,
   CsvDirectoryMissingError,
-} = require("../uploader");
+} = require("./uploader");
 
 const logger = winston.createLogger({
   level: "info",
@@ -36,25 +36,13 @@ function resolveOptions(overrides = {}) {
 
   const directory = overrides.directory ?? config.CSV_UPLOAD_DIR;
   const endpoint = overrides.endpoint ?? INTEGRATION_ENDPOINT;
-  const maxRetries = toPositiveInteger(
-    overrides.maxRetries ?? config.CSV_UPLOAD_MAX_RETRIES,
-    3
-  );
-  const retryDelaySeconds = toPositiveInteger(
-    overrides.retryDelaySeconds ?? config.CSV_UPLOAD_RETRY_DELAY_SECONDS,
-    60
-  );
-  const timeoutMs = toPositiveInteger(
-    overrides.timeoutMs ?? config.CSV_UPLOAD_TIMEOUT_MS,
-    120000
-  );
 
   return {
     directory,
     endpoint,
-    maxRetries,
-    retryDelayMs: retryDelaySeconds * 1000,
-    timeoutMs,
+    maxRetries: 3,
+    retryDelayMs: 60 * 1000,
+    timeoutMs: 120000,
     schoolId: overrides.schoolId ?? config.SCHOOL_ID,
     schoolDomain: overrides.schoolDomain ?? config.SCHOOL_DOMAIN,
   };
@@ -81,7 +69,13 @@ async function runCsvSendJob(overrides = {}) {
 
   isJobRunning = true;
   try {
-    await sendDailyCsvData(options);
+    const result = await sendDailyCsvData(options);
+    if (result) {
+      const config = loadConfig();
+      config.LAST_UPLOAD_TIME = new Date().toISOString();
+      const { saveConfig } = require("./configManager");
+      saveConfig(config);
+    }
   } catch (error) {
     if (error instanceof CsvFileNotFoundError) {
       logger.warn("CSV file for data send not found", {

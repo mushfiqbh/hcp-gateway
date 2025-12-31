@@ -136,8 +136,8 @@ async function parseCsvFile(filePath) {
 
   // Transform CSV records to the expected format
   const attendanceData = records.map(record => ({
-    personId: record["Person ID"],
-    accessDate: record["Access Date"],
+    personCode: record["Person ID"],
+    attendanceDate: record["Access Date"],
     attendanceStatus: record["Attendance Status"],
   }));
 
@@ -220,7 +220,6 @@ async function sendDailyCsvData(options) {
   let lastError = null;
 
   const metadata = {
-    type: "csvfile",
     date: dayjs(referenceDate).format("YYYY-MM-DD"),
     school_id: schoolId || "",
     school_domain: schoolDomain || "",

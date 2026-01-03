@@ -17,12 +17,12 @@ const INTEGRATION_ENDPOINT = "https://cloud.barnomala.com/api/attendance/receive
 
 const defaultConfig = {
   INTEGRATION_ENDPOINT: INTEGRATION_ENDPOINT,
-  SCHEDULE_MODE: "daily",
+  SCHEDULE_MODE: "interval",
   CRON_SCHEDULE: "",
   DAILY_RUN_TIMES: ["09:00", "18:00"],
   SCHOOL_ID: "0",
   SCHOOL_DOMAIN: "example.edu.bd",
-  CSV_UPLOAD_DIR: "C:/Users/HP/Downloads/AcsRecords",
+  CSV_UPLOAD_DIR: "C:/Program Files/HikCentral/VSM Servers/SYS",
   LAST_UPLOAD_TIME: null,
 };
 

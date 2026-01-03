@@ -36,7 +36,7 @@ function normalizeRunTimes(value) {
 
 function resolveScheduleOptions(overrides = {}) {
   const config = loadConfig();
-  const scheduleMode = overrides.scheduleMode ?? config.SCHEDULE_MODE ?? "daily";
+  const scheduleMode = overrides.scheduleMode ?? config.SCHEDULE_MODE ?? "interval";
   const cronExpression = overrides.cronExpression ?? config.CRON_SCHEDULE;
   const runTimes = normalizeRunTimes(
     overrides.runTimes ?? config.DAILY_RUN_TIMES

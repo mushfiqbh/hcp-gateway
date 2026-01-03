@@ -136,13 +136,14 @@ async function parseCsvFile(filePath) {
 
   // Transform CSV records to the expected format
   const attendanceData = records.map(record => ({
-    personCode: record["Person ID"],
-    fullName: record["First Name"] + (record["Last Name"] ? ` ${record["Last Name"]}` : ""),
-    department: record["Department"],
-    maskStatus: record["Mask"],
-    attendanceDate: record["Access Date"],
-    attendanceTime: record["Card Swiping Time"],
-    attendanceStatus: record["Attendance Status"],
+    personCode: record["Person ID"] || record["\tPerson ID"],
+    fullName:  record["First Name"] || record["\tFirst Name"],
+    phone: record["Last Name"] || record["\tLast Name"],  // LastName used as phone number
+    department: record["Department"] || record["\tDepartment"],
+    mask: record["Mask"] || record["\tMask"],
+    attendanceDate: record["Access Date"] || record["\tAccess Date"],
+    attendanceTime: record["Card Swiping Time"] || record["\tCard Swiping Time"],
+    attendanceStatus: record["Attendance Status"] || record["\tAttendance Status"],
   }));
 
   return attendanceData;
